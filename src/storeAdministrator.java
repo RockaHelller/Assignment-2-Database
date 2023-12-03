@@ -13,7 +13,7 @@ public class storeAdministrator {
         // CONNECTION PART
         try (Connection connection = DriverManager.getConnection(URL,USERNAME,PASSWORD)) {
 
-            System.out.println("Which operation do you want? \n create\n retrieve\n update\n delete\n tables-metadata\n one-table-metadata");
+            System.out.println("Which operation do you want? \n create\n show\n update\n delete\n tables-metadata\n one-table-metadata");
             String operation = scanner.nextLine();
 
             // Selecting a CRUD operation
@@ -23,6 +23,9 @@ public class storeAdministrator {
                     insertRecord(scanner, connection);
                     break;
 
+                case "show":
+                    retrieve_books(connection);
+                    break;
 
 
 
@@ -196,7 +199,29 @@ public class storeAdministrator {
         }
     }
 
+    private static void retrieve_books(Connection connection) throws SQLException {
+        String sql_query = "SELECT Books.title, Books.current_stock, Books.genre, Authors.author_name, COALESCE(Orders.amount_of_order, 0) as amount_of_order " +
+                "FROM Books " +
+                "LEFT JOIN Authors ON Books.id_of_author = Authors.id_of_author " +
+                "LEFT JOIN Orders ON Books.id_of_book = Orders.id_of_book";
 
+        System.out.println("Retrieving all books with authors and orders:");
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql_query);
+             ResultSet resultSet = stmt.executeQuery()) {
+
+            while (resultSet.next()) {
+
+                String title = resultSet.getString("title");
+                int current_stock = resultSet.getInt("current_stock");
+                String genre = resultSet.getString("genre");
+                String author_name = resultSet.getString("author_name");
+                int order_amount = resultSet.getInt("amount_of_order");
+
+                System.out.println("Title: " + title + ", Genre: " + genre + ", Current stock: " + current_stock + ", Author: " + author_name + ", Order amount: " + order_amount);
+            }
+        }
+    }
 
 
 
