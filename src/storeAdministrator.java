@@ -27,7 +27,9 @@ public class storeAdministrator {
                     retrieve_books(connection);
                     break;
 
-
+                case "update":
+                    update_book(scanner, connection);
+                    break;
 
                
 
@@ -223,8 +225,24 @@ public class storeAdministrator {
         }
     }
 
+    private static void update_book(Scanner scanner, Connection connection) throws SQLException {
 
+        System.out.print("What is the ID of the book to update? ");
+        int id = Integer.parseInt(scanner.nextLine());
 
-   
+        System.out.print("What is the new title? ");
+        String title = scanner.nextLine();
+
+        String sql_query = "UPDATE Books SET title = ? WHERE id_of_book = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql_query)) {
+            stmt.setString(1, title);
+            stmt.setInt(2, id);
+            int rowsUpdated = stmt.executeUpdate();
+            System.out.println(rowsUpdated + " are updated successfully.");
+        }
+    }
+
+    
 
 }
