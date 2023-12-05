@@ -30,7 +30,9 @@ public class storeAdministrator {
                 case "update":
                     update_book(scanner, connection);
                     break;
-
+                case "delete":
+                    delete_book(scanner, connection);
+                    break;
                
 
             }
@@ -242,7 +244,20 @@ public class storeAdministrator {
             System.out.println(rowsUpdated + " are updated successfully.");
         }
     }
+    
+    private static void delete_book(Scanner scanner, Connection connection) throws SQLException {
 
+        System.out.print("What is the book ID to delete? ");
+        int id = Integer.parseInt(scanner.nextLine());
+
+        String sql_query = "DELETE FROM Books WHERE id_of_book = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql_query)) {
+            stmt.setInt(1, id);
+            int rowsDeleted = stmt.executeUpdate();
+
+        }
+    }
     
 
 }
