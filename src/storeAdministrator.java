@@ -30,10 +30,19 @@ public class storeAdministrator {
                 case "update":
                     update_book(scanner, connection);
                     break;
+
                 case "delete":
                     delete_book(scanner, connection);
                     break;
-               
+
+                case "tables-metadata":
+                    outlineTableStructure(connection);
+
+                case "one-table-metadata":
+                    System.out.print("What is the table name? ");
+                    String nameTable = scanner.nextLine();
+                    retrieveMetadata(connection, nameTable);
+                    break;
 
             }
         } catch (SQLException e) {
@@ -44,9 +53,8 @@ public class storeAdministrator {
         }
     }
 
-
-
-
+    // CRUD operations
+    // Inserting a new record
     private static void insertRecord(Scanner scanner, Connection connection) throws SQLException {
 
         System.out.println("What do you want to create? Book, Author, Customer, Order");
@@ -75,6 +83,7 @@ public class storeAdministrator {
         }
     }
 
+    // Processes and records a new order in the 'Orders' table of the database.
     private static void create_order(Scanner scanner, Connection connection) throws SQLException {
 
         System.out.print("What is the order ID? ");
@@ -135,6 +144,8 @@ public class storeAdministrator {
         }
     }
 
+
+    // Adds a new book record to the 'Books' table in the database
     private static void create_book(Scanner scanner, Connection connection) throws SQLException {
 
         System.out.print("What is the book ID? ");
@@ -165,6 +176,8 @@ public class storeAdministrator {
         }
     }
 
+
+    // Adds a new author record to the 'Authors' table in the database
     private static void create_author(Scanner scanner, Connection connection) throws SQLException {
 
         System.out.print("What is the author's ID? ");
@@ -185,6 +198,8 @@ public class storeAdministrator {
         }
     }
 
+
+    // Adds a new customer record to the 'Customers' table in the database.
     private static void create_customer(Scanner scanner, Connection connection) throws SQLException {
 
         System.out.print("What is the customer ID? ");
@@ -203,6 +218,8 @@ public class storeAdministrator {
         }
     }
 
+
+    // Retrieves and displays details of all books from the 'Books' table,
     private static void retrieve_books(Connection connection) throws SQLException {
         String sql_query = "SELECT Books.title, Books.current_stock, Books.genre, Authors.author_name, COALESCE(Orders.amount_of_order, 0) as amount_of_order " +
                 "FROM Books " +
@@ -227,6 +244,8 @@ public class storeAdministrator {
         }
     }
 
+
+    // Updates the title of a book in the 'Books' table based on the provided book ID.
     private static void update_book(Scanner scanner, Connection connection) throws SQLException {
 
         System.out.print("What is the ID of the book to update? ");
@@ -244,7 +263,9 @@ public class storeAdministrator {
             System.out.println(rowsUpdated + " are updated successfully.");
         }
     }
-    
+
+
+    // Deletes a book record from the 'Books' table in the database based on the provided book ID
     private static void delete_book(Scanner scanner, Connection connection) throws SQLException {
 
         System.out.print("What is the book ID to delete? ");
@@ -258,6 +279,77 @@ public class storeAdministrator {
 
         }
     }
-    
+
+
+    // Retrieves and prints metadata for a specified table
+    private static void retrieveMetadata(Connection conn, String targetTable) {
+        try {
+            listColumnInformation(conn, targetTable);
+            enumeratePrimaryKeys(conn, targetTable);
+            listForeignKeys(conn, targetTable);
+        } catch (SQLException e) {
+            System.out.println("Metadata retrieval error for table: " + targetTable);
+            e.printStackTrace();
+        }
+    }
+
+
+    // Retrieves and prints a summary of all tables within the connected database.
+    private static void outlineTableStructure(Connection conn) throws SQLException {
+        DatabaseMetaData metaData = conn.getMetaData();
+
+        try (ResultSet rsTables = metaData.getTables(null, null, null, new String[]{"TABLE"})) {
+            System.out.println("Database Tables:");
+            while (rsTables.next()) {
+                System.out.println("Name: " + rsTables.getString("TABLE_NAME") + ", Category: " + rsTables.getString("TABLE_TYPE"));
+            }
+        }
+    }
+
+
+    // Lists and prints detailed information about the columns of a specific table in the connected database.
+    private static void listColumnInformation(Connection conn, String targetTable) throws SQLException {
+        DatabaseMetaData metaData = conn.getMetaData();
+
+        System.out.println("Column information for " + targetTable + ":");
+        try (ResultSet rsColumns = metaData.getColumns(null, null, targetTable, null)) {
+            while (rsColumns.next()) {
+                System.out.println("Name: " + rsColumns.getString("COLUMN_NAME") +
+                        ", Data Type: " + rsColumns.getString("TYPE_NAME") +
+                        ", Length: " + rsColumns.getInt("COLUMN_SIZE"));
+            }
+        }
+    }
+
+
+    // Enumerates and prints the primary key details of a specified table in the connected database.
+    private static void enumeratePrimaryKeys(Connection conn, String targetTable) throws SQLException {
+        DatabaseMetaData metaData = conn.getMetaData();
+
+        System.out.println("Primary keys in " + targetTable + ":");
+        try (ResultSet rsPrimaryKeys = metaData.getPrimaryKeys(null, null, targetTable)) {
+            while (rsPrimaryKeys.next()) {
+                System.out.println("Key Column: " + rsPrimaryKeys.getString("COLUMN_NAME") +
+                        ", Key Identifier: " + rsPrimaryKeys.getString("PK_NAME"));
+            }
+        }
+    }
+
+
+    // Lists and prints the foreign key details for a specified table in the connected database.
+    private static void listForeignKeys(Connection conn, String targetTable) throws SQLException {
+        DatabaseMetaData metaData = conn.getMetaData();
+
+        System.out.println("Foreign key details of " + targetTable + ":");
+        try (ResultSet rsForeignKeys = metaData.getImportedKeys(null, null, targetTable)) {
+            while (rsForeignKeys.next()) {
+                System.out.println("Foreign Key: " + rsForeignKeys.getString("FK_NAME") +
+                        ", Column: " + rsForeignKeys.getString("FKCOLUMN_NAME") +
+                        ", Referenced Table: " + rsForeignKeys.getString("PKTABLE_NAME") +
+                        ", Referenced Column: " + rsForeignKeys.getString("PKCOLUMN_NAME"));
+            }
+        }
+    }
+
 
 }
